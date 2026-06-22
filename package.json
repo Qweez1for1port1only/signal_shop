@@ -1,0 +1,26 @@
+{
+  "name": "tech-store",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.19"
+  },
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c green,cyan \"npm run dev -w @tech-store/api\" \"npm run dev -w @tech-store/web\"",
+    "dev:api": "npm run dev -w @tech-store/api",
+    "dev:web": "npm run dev -w @tech-store/web",
+    "build": "npm run build -w @tech-store/api && npm run build -w @tech-store/web",
+    "lint": "npm run lint -w @tech-store/api && npm run lint -w @tech-store/web",
+    "test": "npm run test -w @tech-store/api",
+    "db:setup": "npm run db:setup -w @tech-store/api",
+    "db:seed": "npm run db:seed -w @tech-store/api"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3",
+    "typescript": "^5.9.3"
+  }
+}
