@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import { query } from "./db/pool.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
+import { productRouter } from "./modules/products/product.routes.js";
 import { userRouter } from "./modules/users/user.routes.js";
 import { env } from "./shared/env.js";
 import { asyncHandler, errorHandler, notFoundHandler } from "./shared/errors.js";
@@ -42,6 +43,7 @@ export function createApp() {
   app.use("/api/auth/register", authLimiter);
   app.use("/api/auth", authRouter);
   app.use("/api/users", userRouter);
+  app.use("/api", productRouter);
   app.use("/api", notFoundHandler);
   app.use(errorHandler);
 
