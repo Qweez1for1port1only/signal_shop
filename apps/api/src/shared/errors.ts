@@ -25,9 +25,15 @@ export const notFoundHandler: RequestHandler = (_req, _res, next) => {
 
 export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
   if (error instanceof ZodError) {
+    const issues = error.issues.map((issue) => ({
+      path: issue.path.map(String),
+      message: issue.message
+    }));
+
     res.status(400).json({
-      message: "Проверьте правильность заполнения формы",
-      errors: error.flatten()
+      message: issues[0]?.message ?? "Проверьте правильность заполнения формы",
+      errors: error.flatten(),
+      issues
     });
     return;
   }
