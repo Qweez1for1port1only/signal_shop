@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
-import { LogOut, Menu, User, X } from "@lucide/vue";
+import { LogOut, Menu, Search, User, X } from "@lucide/vue";
 import { useAuthStore } from "@/stores/auth";
 
 const authStore = useAuthStore();
@@ -10,8 +10,7 @@ const isOpen = ref(false);
 
 const links = [
   { to: "/", label: "Главная" },
-  { to: "/login", label: "Вход" },
-  { to: "/register", label: "Регистрация" }
+  { to: "/catalog", label: "Каталог" }
 ];
 
 function closeMenu() {
@@ -49,6 +48,13 @@ async function logout() {
       </nav>
 
       <div class="hidden items-center gap-2 md:flex">
+        <RouterLink
+          to="/catalog"
+          class="inline-flex size-10 items-center justify-center rounded-full text-slate-300 transition hover:bg-white/10 hover:text-white"
+          title="Поиск"
+        >
+          <Search class="size-5" />
+        </RouterLink>
         <RouterLink
           v-if="!authStore.isAuthenticated"
           to="/login"
@@ -88,7 +94,16 @@ async function logout() {
         >
           {{ link.label }}
         </RouterLink>
-        <button v-if="authStore.isAuthenticated" class="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 px-4 py-3 text-sm font-black text-white" type="button" @click="logout">
+        <RouterLink
+          v-if="!authStore.isAuthenticated"
+          to="/login"
+          class="inline-flex items-center justify-center gap-2 rounded-full bg-amberline px-4 py-3 text-sm font-black text-ink"
+          @click="closeMenu"
+        >
+          <User class="size-4" />
+          Войти
+        </RouterLink>
+        <button v-else class="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 px-4 py-3 text-sm font-black text-white" type="button" @click="logout">
           <LogOut class="size-4" />
           Выйти
         </button>
