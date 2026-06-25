@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import HomeView from "@/views/HomeView.vue";
 
+const CartView = () => import("@/views/CartView.vue");
 const CatalogView = () => import("@/views/CatalogView.vue");
 const LoginView = () => import("@/views/LoginView.vue");
 const ProductView = () => import("@/views/ProductView.vue");
@@ -25,6 +26,12 @@ const router = createRouter({
       path: "/catalog/:slug",
       name: "product",
       component: ProductView
+    },
+    {
+      path: "/cart",
+      name: "cart",
+      component: CartView,
+      meta: { requiresAuth: true }
     },
     {
       path: "/login",
@@ -52,6 +59,7 @@ router.afterEach((to) => {
     home: "SIGNAL — техника по делу",
     catalog: "Каталог — SIGNAL",
     product: "Товар — SIGNAL",
+    cart: "Корзина — SIGNAL",
     login: "Вход — SIGNAL",
     register: "Регистрация — SIGNAL",
     "not-found": "Страница не найдена — SIGNAL"
@@ -62,6 +70,13 @@ router.afterEach((to) => {
 router.beforeEach(async (to) => {
   const authStore = useAuthStore();
   await authStore.initialize();
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    return {
+      name: "login",
+      query: { redirect: to.fullPath }
+    };
+  }
 
   if ((to.name === "login" || to.name === "register") && authStore.isAuthenticated) {
     return { name: "home" };

@@ -16,10 +16,18 @@
 import { onMounted } from "vue";
 import AppHeader from "@/components/AppHeader.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useCartStore } from "@/stores/cart";
 
 const authStore = useAuthStore();
+const cartStore = useCartStore();
 
 onMounted(async () => {
   await authStore.initialize();
+
+  if (authStore.isAuthenticated) {
+    await cartStore.loadCart();
+  } else {
+    cartStore.reset();
+  }
 });
 </script>

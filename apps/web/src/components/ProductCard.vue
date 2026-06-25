@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { RouterLink } from "vue-router";
-import { Eye } from "@lucide/vue";
+import { computed, ref } from "vue";
+import { RouterLink, useRouter } from "vue-router";
+import { Eye, ShoppingCart } from "@lucide/vue";
+import { useAuthStore } from "@/stores/auth";
+import { useCartStore } from "@/stores/cart";
 import type { Product } from "@/types";
 import { formatPrice } from "@/utils/format";
 
@@ -9,7 +11,33 @@ const props = defineProps<{
   product: Product;
 }>();
 
+const authStore = useAuthStore();
+const cartStore = useCartStore();
+const router = useRouter();
+const busy = ref(false);
+const added = ref(false);
+const errorMessage = ref("");
 const hasDiscount = computed(() => Boolean(props.product.oldPrice));
+
+async function addToCart() {
+  if (!authStore.isAuthenticated) {
+    router.push({ name: "login", query: { redirect: router.currentRoute.value.fullPath } });
+    return;
+  }
+
+  busy.value = true;
+  errorMessage.value = "";
+
+  try {
+    await cartStore.addItem(props.product.id);
+    added.value = true;
+    window.setTimeout(() => (added.value = false), 1400);
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : "Не удалось добавить товар";
+  } finally {
+    busy.value = false;
+  }
+}
 </script>
 
 <template>
@@ -39,10 +67,17 @@ const hasDiscount = computed(() => Boolean(props.product.oldPrice));
           {{ formatPrice(product.oldPrice ?? 0) }}
         </span>
       </div>
-      <RouterLink :to="`/catalog/${product.slug}`" class="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-steel transition hover:text-accent">
-        Подробнее
-        <Eye class="size-4" />
-      </RouterLink>
+      <p v-if="errorMessage" class="mt-3 text-xs font-bold text-rose-700" role="alert">{{ errorMessage }}</p>
+      <div class="mt-4 flex items-center justify-between gap-3">
+        <RouterLink :to="`/catalog/${product.slug}`" class="inline-flex items-center gap-1.5 text-sm font-bold text-steel transition hover:text-accent">
+          Подробнее
+          <Eye class="size-4" />
+        </RouterLink>
+        <button class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-ink px-4 text-sm font-bold text-white transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50" type="button" :disabled="busy || product.stock === 0" @click="addToCart">
+          <ShoppingCart class="size-4" />
+          {{ product.stock ? (added ? "Добавлено" : "В корзину") : "Нет в наличии" }}
+        </button>
+      </div>
     </div>
   </article>
 </template>

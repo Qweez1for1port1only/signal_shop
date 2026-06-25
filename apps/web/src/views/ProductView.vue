@@ -1,17 +1,47 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ArrowLeft, Check } from "@lucide/vue";
+import { ArrowLeft, Check, ShoppingCart } from "@lucide/vue";
+import QuantityStepper from "@/components/QuantityStepper.vue";
+import { useAuthStore } from "@/stores/auth";
+import { useCartStore } from "@/stores/cart";
 import { useCatalogStore } from "@/stores/catalog";
 import { formatPrice } from "@/utils/format";
 
 const route = useRoute();
 const router = useRouter();
 const catalogStore = useCatalogStore();
+const cartStore = useCartStore();
+const authStore = useAuthStore();
+const quantity = ref(1);
+const busy = ref(false);
 const product = computed(() => catalogStore.product);
 
 async function loadProduct() {
   await catalogStore.loadProduct(String(route.params.slug));
+  quantity.value = 1;
+}
+
+async function addToCart() {
+  if (!product.value) {
+    return;
+  }
+
+  if (!authStore.isAuthenticated) {
+    router.push({ name: "login", query: { redirect: route.fullPath } });
+    return;
+  }
+
+  busy.value = true;
+
+  try {
+    await cartStore.addItem(product.value.id, quantity.value);
+    router.push({ name: "cart" });
+  } catch {
+    // The cart store keeps the visible error message.
+  } finally {
+    busy.value = false;
+  }
 }
 
 onMounted(loadProduct);
@@ -58,6 +88,15 @@ watch(() => route.params.slug, loadProduct);
             <Check class="size-5" />
             На складе: {{ product.stock }} шт.
           </div>
+
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <QuantityStepper v-model="quantity" :min="1" :max="Math.max(product.stock, 1)" />
+            <button class="btn-primary h-10 flex-1" type="button" :disabled="busy || product.stock === 0" @click="addToCart">
+              <ShoppingCart class="size-4" />
+              Добавить в корзину
+            </button>
+          </div>
+          <p v-if="cartStore.error" class="mt-4 text-sm font-bold text-rose-700" role="alert">{{ cartStore.error }}</p>
 
           <div class="panel mt-8 p-5">
             <h2 class="text-lg font-black text-ink">Характеристики</h2>

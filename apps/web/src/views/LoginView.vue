@@ -3,9 +3,11 @@ import { reactive } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import { LogIn } from "@lucide/vue";
 import { useAuthStore } from "@/stores/auth";
+import { useCartStore } from "@/stores/cart";
 import { safeRedirect } from "@/utils/navigation";
 
 const authStore = useAuthStore();
+const cartStore = useCartStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -17,6 +19,7 @@ const form = reactive({
 async function submit() {
   try {
     await authStore.login(form);
+    await cartStore.loadCart();
     router.push(safeRedirect(route.query.redirect, "/"));
   } catch {
     // The store exposes the server message next to the form.

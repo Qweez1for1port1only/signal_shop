@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
-import { LogOut, Menu, Search, User, X } from "@lucide/vue";
+import { LogOut, Menu, Search, ShoppingCart, User, X } from "@lucide/vue";
 import { useAuthStore } from "@/stores/auth";
+import { useCartStore } from "@/stores/cart";
 
 const authStore = useAuthStore();
+const cartStore = useCartStore();
 const router = useRouter();
 const isOpen = ref(false);
+
+const cartCount = computed(() => cartStore.cart.totalItems);
 
 const links = [
   { to: "/", label: "Главная" },
@@ -19,6 +23,7 @@ function closeMenu() {
 
 async function logout() {
   await authStore.logout();
+  cartStore.reset();
   closeMenu();
   router.push("/");
 }
@@ -54,6 +59,19 @@ async function logout() {
           title="Поиск"
         >
           <Search class="size-5" />
+        </RouterLink>
+        <RouterLink
+          to="/cart"
+          class="relative inline-flex size-10 items-center justify-center rounded-full text-slate-300 transition hover:bg-white/10 hover:text-white"
+          title="Корзина"
+        >
+          <ShoppingCart class="size-5" />
+          <span
+            v-if="cartCount"
+            class="absolute -right-1 -top-1 min-w-5 rounded-full bg-coral px-1.5 text-center text-xs font-black text-white"
+          >
+            {{ cartCount }}
+          </span>
         </RouterLink>
         <RouterLink
           v-if="!authStore.isAuthenticated"
@@ -93,6 +111,14 @@ async function logout() {
           @click="closeMenu"
         >
           {{ link.label }}
+        </RouterLink>
+        <RouterLink
+          to="/cart"
+          class="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-bold text-slate-300"
+          @click="closeMenu"
+        >
+          Корзина
+          <span class="font-black text-amberline">{{ cartCount }}</span>
         </RouterLink>
         <RouterLink
           v-if="!authStore.isAuthenticated"
