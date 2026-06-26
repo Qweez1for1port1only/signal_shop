@@ -11,6 +11,7 @@ type ProductSeed = {
   categorySlug: string;
   name: string;
   slug: string;
+  previousSlug?: string;
   description: string;
   price: number;
   oldPrice?: number;
@@ -48,6 +49,7 @@ const products: ProductSeed[] = [
     categorySlug: "laptops",
     name: "Apple MacBook Air 13 M3",
     slug: "apple-macbook-air-13-m3",
+    previousSlug: "acer-swift-go-14",
     description: "Тонкий ноутбук с бесшумным охлаждением, ярким дисплеем Liquid Retina и долгой автономностью.",
     price: 109990,
     oldPrice: 119990,
@@ -174,6 +176,103 @@ const products: ProductSeed[] = [
       technology: "GaN",
       cable: "в комплекте"
     }
+  },
+  {
+    categorySlug: "laptops",
+    name: "ASUS Zenbook 14 OLED",
+    slug: "asus-zenbook-14-oled",
+    description: "Компактный ноутбук в алюминиевом корпусе с OLED-дисплеем и быстрым накопителем на 1 ТБ.",
+    price: 99990,
+    stock: 10,
+    imageUrl: "/products/zenbook-14.webp",
+    featured: true,
+    specs: {
+      processor: "Intel Core Ultra 7",
+      memory: "16 ГБ",
+      storage: "1 ТБ SSD",
+      screen: "14 OLED 3K"
+    }
+  },
+  {
+    categorySlug: "smartphones",
+    name: "Apple iPhone 16",
+    slug: "apple-iphone-16",
+    description: "Смартфон с процессором A18, камерой 48 Мп и удобной кнопкой управления съёмкой.",
+    price: 99990,
+    stock: 20,
+    imageUrl: "/products/iphone-16.webp",
+    featured: true,
+    specs: {
+      display: "6.1 Super Retina XDR",
+      processor: "Apple A18",
+      storage: "256 ГБ",
+      camera: "48 Мп"
+    }
+  },
+  {
+    categorySlug: "smartphones",
+    name: "Google Pixel 9",
+    slug: "google-pixel-9",
+    description: "Компактный смартфон Google с чистым Android, ярким OLED-экраном и камерой 50 Мп.",
+    price: 79990,
+    oldPrice: 84990,
+    stock: 13,
+    imageUrl: "/products/pixel-9.webp",
+    featured: false,
+    specs: {
+      display: "6.3 OLED 120 Гц",
+      processor: "Google Tensor G4",
+      storage: "256 ГБ",
+      camera: "50 Мп"
+    }
+  },
+  {
+    categorySlug: "audio",
+    name: "Apple AirPods 4",
+    slug: "apple-airpods-4",
+    description: "Компактные беспроводные наушники с пространственным аудио и зарядным футляром USB-C.",
+    price: 19990,
+    stock: 22,
+    imageUrl: "/products/airpods-4.webp",
+    featured: false,
+    specs: {
+      connection: "Bluetooth 5.3",
+      chip: "Apple H2",
+      charging: "USB-C",
+      protection: "IP54"
+    }
+  },
+  {
+    categorySlug: "audio",
+    name: "Marshall Emberton II",
+    slug: "marshall-emberton-ii",
+    description: "Портативная стереоколонка с фирменным дизайном, защитой IP67 и автономностью более 30 часов.",
+    price: 17990,
+    stock: 16,
+    imageUrl: "/products/emberton-ii.webp",
+    featured: false,
+    specs: {
+      connection: "Bluetooth 5.1",
+      battery: "более 30 часов",
+      protection: "IP67",
+      weight: "700 г"
+    }
+  },
+  {
+    categorySlug: "accessories",
+    name: "Keychron K2 Pro",
+    slug: "keychron-k2-pro",
+    description: "Беспроводная механическая клавиатура формата 75% с поддержкой QMK/VIA и горячей заменой свитчей.",
+    price: 14990,
+    stock: 17,
+    imageUrl: "/products/keychron-k2-pro.webp",
+    featured: false,
+    specs: {
+      layout: "75%",
+      connection: "Bluetooth / USB-C",
+      switches: "hot-swap",
+      battery: "4000 мАч"
+    }
   }
 ];
 
@@ -201,6 +300,17 @@ async function seed() {
 
       if (!categoryId) {
         throw new Error(`Category not found: ${product.categorySlug}`);
+      }
+
+      if (product.previousSlug && product.previousSlug !== product.slug) {
+        await client.query(
+          `
+            UPDATE products
+            SET slug = $2
+            WHERE slug = $1 AND NOT EXISTS (SELECT 1 FROM products WHERE slug = $2)
+          `,
+          [product.previousSlug, product.slug]
+        );
       }
 
       await client.query(
