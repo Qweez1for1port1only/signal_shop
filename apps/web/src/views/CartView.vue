@@ -107,10 +107,10 @@ onMounted(() => {
               <span class="font-bold text-ink">{{ formatPrice(cartStore.cart.totalAmount) }}</span>
             </div>
           </div>
-          <button class="btn-primary mt-6 w-full" type="button" disabled>
+          <RouterLink to="/checkout" class="btn-primary mt-6 w-full">
             <CreditCard class="size-4" />
-            Оформление появится дальше
-          </button>
+            Оформить заказ
+          </RouterLink>
         </aside>
       </div>
 

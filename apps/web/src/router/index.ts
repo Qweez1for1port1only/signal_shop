@@ -4,6 +4,7 @@ import HomeView from "@/views/HomeView.vue";
 
 const CartView = () => import("@/views/CartView.vue");
 const CatalogView = () => import("@/views/CatalogView.vue");
+const CheckoutView = () => import("@/views/CheckoutView.vue");
 const LoginView = () => import("@/views/LoginView.vue");
 const ProductView = () => import("@/views/ProductView.vue");
 const RegisterView = () => import("@/views/RegisterView.vue");
@@ -34,6 +35,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: "/checkout",
+      name: "checkout",
+      component: CheckoutView,
+      meta: { requiresAuth: true }
+    },
+    {
       path: "/login",
       name: "login",
       component: LoginView
@@ -60,6 +67,7 @@ router.afterEach((to) => {
     catalog: "Каталог — SIGNAL",
     product: "Товар — SIGNAL",
     cart: "Корзина — SIGNAL",
+    checkout: "Оформление — SIGNAL",
     login: "Вход — SIGNAL",
     register: "Регистрация — SIGNAL",
     "not-found": "Страница не найдена — SIGNAL"
