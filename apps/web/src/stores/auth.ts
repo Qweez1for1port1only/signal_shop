@@ -19,6 +19,15 @@ type LoginPayload = {
   password: string;
 };
 
+type ProfilePayload = {
+  firstName: string;
+  lastName: string;
+  phone?: string | null;
+  city?: string | null;
+  address?: string | null;
+  postalCode?: string | null;
+};
+
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null as User | null,
@@ -52,6 +61,7 @@ export const useAuthStore = defineStore("auth", {
       try {
         const data = await apiRequest<AuthResponse>("/auth/register", {
           method: "POST",
+          auth: false,
           body: JSON.stringify(payload)
         });
 
@@ -71,6 +81,7 @@ export const useAuthStore = defineStore("auth", {
       try {
         const data = await apiRequest<AuthResponse>("/auth/login", {
           method: "POST",
+          auth: false,
           body: JSON.stringify(payload)
         });
 
@@ -78,6 +89,33 @@ export const useAuthStore = defineStore("auth", {
         this.initialized = true;
       } catch (error) {
         this.error = error instanceof Error ? error.message : "Вход не выполнен";
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    async loadProfile() {
+      try {
+        const data = await apiRequest<{ user: User }>("/auth/me");
+        this.user = data.user;
+      } catch (error) {
+        this.user = null;
+        throw error;
+      }
+    },
+    async updateProfile(payload: ProfilePayload) {
+      this.loading = true;
+      this.error = "";
+
+      try {
+        const data = await apiRequest<{ user: User }>("/users/me", {
+          method: "PATCH",
+          body: JSON.stringify(payload)
+        });
+
+        this.user = data.user;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : "Профиль не сохранён";
         throw error;
       } finally {
         this.loading = false;

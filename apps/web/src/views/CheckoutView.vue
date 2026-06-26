@@ -126,8 +126,8 @@ onMounted(async () => {
               Номер заказа: {{ orderStore.currentOrder?.id }}
             </p>
             <div class="mt-5 flex flex-wrap gap-3">
-              <RouterLink to="/catalog" class="btn-primary">Каталог</RouterLink>
-              <RouterLink to="/cart" class="btn-secondary">Корзина</RouterLink>
+              <RouterLink to="/account" class="btn-primary">Личный кабинет</RouterLink>
+              <RouterLink to="/catalog" class="btn-secondary">Каталог</RouterLink>
             </div>
           </div>
         </div>

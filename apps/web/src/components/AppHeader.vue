@@ -4,9 +4,11 @@ import { RouterLink, useRouter } from "vue-router";
 import { LogOut, Menu, Search, ShoppingCart, User, X } from "@lucide/vue";
 import { useAuthStore } from "@/stores/auth";
 import { useCartStore } from "@/stores/cart";
+import { useOrderStore } from "@/stores/orders";
 
 const authStore = useAuthStore();
 const cartStore = useCartStore();
+const orderStore = useOrderStore();
 const router = useRouter();
 const isOpen = ref(false);
 
@@ -14,7 +16,8 @@ const cartCount = computed(() => cartStore.cart.totalItems);
 
 const links = [
   { to: "/", label: "Главная" },
-  { to: "/catalog", label: "Каталог" }
+  { to: "/catalog", label: "Каталог" },
+  { to: "/account", label: "Кабинет" }
 ];
 
 function closeMenu() {
@@ -24,6 +27,7 @@ function closeMenu() {
 async function logout() {
   await authStore.logout();
   cartStore.reset();
+  orderStore.reset();
   closeMenu();
   router.push("/");
 }
@@ -33,7 +37,9 @@ async function logout() {
   <header class="sticky top-0 z-40 border-b border-white/10 bg-ink text-white shadow-lg shadow-black/5">
     <div class="container-page flex h-20 items-center justify-between gap-4">
       <RouterLink to="/" class="flex items-center gap-3" @click="closeMenu">
-        <span class="flex size-10 items-center justify-center rounded-full bg-amberline text-sm font-black text-ink">S</span>
+        <span class="flex size-10 items-center justify-center rounded-full bg-amberline text-sm font-black text-ink">
+          S
+        </span>
         <span>
           <span class="block text-base font-black tracking-[0.22em]">SIGNAL</span>
           <span class="block text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">техника по делу</span>

@@ -16,13 +16,29 @@ function getCheckoutKey() {
 
 export const useOrderStore = defineStore("orders", {
   state: () => ({
+    orders: [] as Order[],
     currentOrder: null as Order | null,
     loading: false,
     checkoutMessage: "",
     error: "",
+    total: 0,
     checkoutKey: getCheckoutKey()
   }),
   actions: {
+    async loadOrders() {
+      this.loading = true;
+      this.error = "";
+
+      try {
+        const data = await apiRequest<{ orders: Order[]; total: number }>("/orders?limit=20&page=1");
+        this.orders = data.orders;
+        this.total = data.total;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : "Не удалось загрузить заказы";
+      } finally {
+        this.loading = false;
+      }
+    },
     async checkout(deliveryAddress: DeliveryAddress, card: PaymentCard) {
       this.loading = true;
       this.checkoutMessage = "";
@@ -60,9 +76,11 @@ export const useOrderStore = defineStore("orders", {
       this.error = "";
     },
     reset() {
+      this.orders = [];
       this.currentOrder = null;
       this.checkoutMessage = "";
       this.error = "";
+      this.total = 0;
       this.checkoutKey = createCheckoutKey();
     }
   }

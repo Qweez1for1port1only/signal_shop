@@ -4,10 +4,12 @@ import { RouterLink, useRoute, useRouter } from "vue-router";
 import { UserPlus } from "@lucide/vue";
 import { useAuthStore } from "@/stores/auth";
 import { useCartStore } from "@/stores/cart";
+import { useOrderStore } from "@/stores/orders";
 import { safeRedirect } from "@/utils/navigation";
 
 const authStore = useAuthStore();
 const cartStore = useCartStore();
+const orderStore = useOrderStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -28,8 +30,9 @@ async function submit() {
       email: form.email,
       password: form.password
     });
+    orderStore.reset();
     await cartStore.loadCart();
-    router.push(safeRedirect(route.query.redirect, "/"));
+    router.push(safeRedirect(route.query.redirect));
   } catch {
     // The store exposes the server message next to the form.
   }

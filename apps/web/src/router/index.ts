@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import HomeView from "@/views/HomeView.vue";
 
+const AccountView = () => import("@/views/AccountView.vue");
 const CartView = () => import("@/views/CartView.vue");
 const CatalogView = () => import("@/views/CatalogView.vue");
 const CheckoutView = () => import("@/views/CheckoutView.vue");
@@ -51,6 +52,12 @@ const router = createRouter({
       component: RegisterView
     },
     {
+      path: "/account",
+      name: "account",
+      component: AccountView,
+      meta: { requiresAuth: true }
+    },
+    {
       path: "/:pathMatch(.*)*",
       name: "not-found",
       component: NotFoundView
@@ -70,6 +77,7 @@ router.afterEach((to) => {
     checkout: "Оформление — SIGNAL",
     login: "Вход — SIGNAL",
     register: "Регистрация — SIGNAL",
+    account: "Личный кабинет — SIGNAL",
     "not-found": "Страница не найдена — SIGNAL"
   };
   document.title = titles[String(to.name)] ?? "SIGNAL";
@@ -87,7 +95,7 @@ router.beforeEach(async (to) => {
   }
 
   if ((to.name === "login" || to.name === "register") && authStore.isAuthenticated) {
-    return { name: "home" };
+    return { name: "account" };
   }
 
   return true;
