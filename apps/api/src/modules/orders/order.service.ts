@@ -1,5 +1,4 @@
-import type pg from "pg";
-import { query } from "../../db/pool.js";
+import { query, type DatabaseClient } from "../../db/pool.js";
 import { HttpError } from "../../shared/errors.js";
 import { mapOrder, type OrderItemRow, type OrderRow } from "./order.mapper.js";
 
@@ -113,7 +112,7 @@ export async function listOrders(userId: string, page = 1, limit = 20) {
 }
 
 export async function createCheckout(
-  client: pg.PoolClient,
+  client: DatabaseClient,
   userId: string,
   deliveryAddress: DeliveryAddress,
   card: CardInput,

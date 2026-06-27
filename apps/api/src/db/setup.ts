@@ -6,7 +6,7 @@ import { pool, withTransaction } from "./pool.js";
 const schemaPath = fileURLToPath(new URL("./schema.sql", import.meta.url));
 const migrationVersion = "001_initial";
 
-async function setup() {
+export async function setupDatabase() {
   const sql = await readFile(schemaPath, "utf8");
   const checksum = createHash("sha256").update(sql).digest("hex");
 
@@ -30,7 +30,7 @@ async function setup() {
 
   if (!applied) {
     await withTransaction(async (client) => {
-      await client.query(sql);
+      await client.exec(sql);
       await client.query("INSERT INTO schema_migrations (version, checksum) VALUES ($1, $2)", [
         migrationVersion,
         checksum
@@ -38,12 +38,17 @@ async function setup() {
     });
   }
 
-  await pool.end();
   console.log(`Database migration ${migrationVersion} is ready`);
 }
 
-setup().catch(async (error) => {
-  console.error(error);
-  await pool.end();
-  process.exit(1);
-});
+const isDirectRun = process.argv[1] === fileURLToPath(import.meta.url);
+
+if (isDirectRun) {
+  setupDatabase()
+    .then(() => pool.end())
+    .catch(async (error) => {
+      console.error(error);
+      await pool.end();
+      process.exit(1);
+    });
+}

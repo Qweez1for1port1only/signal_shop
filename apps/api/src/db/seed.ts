@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { fileURLToPath } from "node:url";
 import { pool, withTransaction } from "./pool.js";
 
 type CategorySeed = {
@@ -276,7 +277,7 @@ const products: ProductSeed[] = [
   }
 ];
 
-async function seed() {
+export async function seedDatabase() {
   await withTransaction(async (client) => {
     for (const category of categories) {
       await client.query(
@@ -372,12 +373,17 @@ async function seed() {
     );
   });
 
-  await pool.end();
   console.log("Seed data is ready");
 }
 
-seed().catch(async (error) => {
-  console.error(error);
-  await pool.end();
-  process.exit(1);
-});
+const isDirectRun = process.argv[1] === fileURLToPath(import.meta.url);
+
+if (isDirectRun) {
+  seedDatabase()
+    .then(() => pool.end())
+    .catch(async (error) => {
+      console.error(error);
+      await pool.end();
+      process.exit(1);
+    });
+}

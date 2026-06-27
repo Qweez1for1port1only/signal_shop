@@ -1,33 +1,39 @@
-import pg from "pg";
-import type { QueryResultRow } from "pg";
-import { env } from "../shared/env.js";
+import { PGlite, type Transaction } from "@electric-sql/pglite";
+import { mkdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
-const { Pool } = pg;
+const dataRoot = fileURLToPath(new URL("../../.data", import.meta.url));
+const dataDirectory = fileURLToPath(new URL("../../.data/postgres", import.meta.url));
+mkdirSync(dataRoot, { recursive: true });
 
-export const pool = new Pool({
-  connectionString: env.DATABASE_URL
-});
+const database = new PGlite(dataDirectory);
 
-pool.on("error", (error) => {
-  console.error("Unexpected PostgreSQL pool error", error);
-});
+export type DatabaseClient = Pick<Transaction, "query" | "exec">;
 
-export async function query<T extends QueryResultRow = QueryResultRow>(text: string, params: unknown[] = []) {
-  return pool.query<T>(text, params);
+async function runQuery<T>(text: string, params: unknown[] = []) {
+  const result = await database.query<T>(text, params);
+  return {
+    ...result,
+    rowCount: result.affectedRows ?? result.rows.length
+  };
 }
 
-export async function withTransaction<T>(handler: (client: pg.PoolClient) => Promise<T>) {
-  const client = await pool.connect();
-
-  try {
-    await client.query("BEGIN");
-    const result = await handler(client);
-    await client.query("COMMIT");
-    return result;
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
+export const pool = {
+  query<T>(text: string, params: unknown[] = []) {
+    return runQuery<T>(text, params);
+  },
+  end() {
+    return database.close();
   }
+};
+
+export function query<T extends Record<string, unknown> = Record<string, unknown>>(
+  text: string,
+  params: unknown[] = []
+) {
+  return runQuery<T>(text, params);
+}
+
+export function withTransaction<T>(handler: (client: DatabaseClient) => Promise<T>) {
+  return database.transaction(handler);
 }
