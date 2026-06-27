@@ -277,8 +277,25 @@ const products: ProductSeed[] = [
   }
 ];
 
+const seedVersion = "001_catalog";
+
 export async function seedDatabase() {
-  await withTransaction(async (client) => {
+  const seeded = await withTransaction(async (client) => {
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", ["signal-store-seed"]);
+    await client.exec(`
+      CREATE TABLE IF NOT EXISTS seed_versions (
+        version VARCHAR(120) PRIMARY KEY,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    const applied = await client.query<{ version: string }>(
+      "SELECT version FROM seed_versions WHERE version = $1",
+      [seedVersion]
+    );
+
+    if (applied.rows[0]) return false;
+
     for (const category of categories) {
       await client.query(
         `
@@ -371,9 +388,12 @@ export async function seedDatabase() {
         "ул. Тверская, 15"
       ]
     );
+
+    await client.query("INSERT INTO seed_versions (version) VALUES ($1)", [seedVersion]);
+    return true;
   });
 
-  console.log("Seed data is ready");
+  console.log(seeded ? "Seed data is ready" : "Seed data is already ready");
 }
 
 const isDirectRun = process.argv[1] === fileURLToPath(import.meta.url);

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build -w @tech-store/web",
+  "outputDirectory": "apps/web/dist",
+  "regions": ["fra1"],
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "apps/api/src/db/schema.sql",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index?path=:path"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -1,11 +1,9 @@
 import { createApp } from "./app.js";
+import { initializeDatabase } from "./db/initialize.js";
 import { pool } from "./db/pool.js";
-import { seedDatabase } from "./db/seed.js";
-import { setupDatabase } from "./db/setup.js";
 import { env } from "./shared/env.js";
 
-await setupDatabase();
-await seedDatabase();
+await initializeDatabase();
 
 const server = createApp().listen(env.PORT, () => {
   console.log(`API is running at http://localhost:${env.PORT}`);
